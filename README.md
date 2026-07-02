@@ -1,15 +1,19 @@
 # Zanao Skill
 
-赞哦校园集市 AI Skill — 适配任意高校，开箱即用。
+赞噢校园集市 AI Skill — 适配任意高校，开箱即用。
 
-## 安装
+## 快速开始
 
 ```bash
-# 克隆到全局 skills 目录
+# 1. 安装
 git clone https://github.com/yiyil8020-ux/zanao-skill.git ~/.agents/skills/zanao
-
-# 安装依赖
 pip install requests mcp
+
+# 2. Agent 加载后自动走初始化：询问学校缩写 → 引导获取 token
+
+# 3. 开始使用
+python3 ~/.agents/skills/zanao/zanao_client.py hot          # 热门帖子
+python3 ~/.agents/skills/zanao/zanao_client.py health        # 健康检查
 ```
 
 ## 功能
@@ -48,7 +52,7 @@ python3 ~/.agents/skills/zanao/zanao_refresh_token.py  # 全自动刷新
 
 ## 更多学校
 
-赞哦支持的高校列表见平台小程序。已知可用的学校包括但不限于各地区高校，别名通常为学校英文缩写。
+赞噢支持的高校列表见平台小程序。已知可用的学校包括但不限于各地区高校，别名通常为学校英文缩写。
 
 ## 许可
 
