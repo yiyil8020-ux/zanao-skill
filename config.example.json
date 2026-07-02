@@ -1,0 +1,5 @@
+{
+  "_comment": "复制为 config.json 后填写。zanao_alias 填你学校的缩写，抓包后填 zanao_token。",
+  "zanao_alias": "",
+  "zanao_token": ""
+}
