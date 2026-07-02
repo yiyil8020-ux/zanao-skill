@@ -73,7 +73,7 @@ brew install mitmproxy
 #### 2. 启动代理并装证书
 
 ```bash
-mitmweb --no-web-open浏览器    # 启动代理 (端口 8080)，网页界面 http://127.0.0.1:8081
+mitmweb --no-web-open-browser           # 启动代理 (端口 8080)，网页界面 http://127.0.0.1:8081
 ```
 
 第一次启动会在 `~/.mitmproxy/` 生成证书。安装证书并设为受信任：
