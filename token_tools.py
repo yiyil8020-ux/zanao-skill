@@ -74,11 +74,23 @@ def _start_mitm():
 
 def _proxy(enable):
     if enable:
-        subprocess.run(["networksetup", "-setwebproxy", "Wi-Fi", "127.0.0.1", "8080"])
-        subprocess.run(["networksetup", "-setsecurewebproxy", "Wi-Fi", "127.0.0.1", "8080"])
+        if sys.platform == "darwin":
+            subprocess.run(["networksetup", "-setwebproxy", "Wi-Fi", "127.0.0.1", "8080"])
+            subprocess.run(["networksetup", "-setsecurewebproxy", "Wi-Fi", "127.0.0.1", "8080"])
+        elif sys.platform == "win32":
+            subprocess.run(["netsh", "winhttp", "set", "proxy", "127.0.0.1:8080"], shell=True)
+        else:
+            os.environ["http_proxy"] = "http://127.0.0.1:8080"
+            os.environ["https_proxy"] = "http://127.0.0.1:8080"
     else:
-        subprocess.run(["networksetup", "-setwebproxystate", "Wi-Fi", "off"])
-        subprocess.run(["networksetup", "-setsecurewebproxystate", "Wi-Fi", "off"])
+        if sys.platform == "darwin":
+            subprocess.run(["networksetup", "-setwebproxystate", "Wi-Fi", "off"])
+            subprocess.run(["networksetup", "-setsecurewebproxystate", "Wi-Fi", "off"])
+        elif sys.platform == "win32":
+            subprocess.run(["netsh", "winhttp", "reset", "proxy"], shell=True)
+        else:
+            os.environ.pop("http_proxy", None)
+            os.environ.pop("https_proxy", None)
 
 
 def _wait(timeout=180):
