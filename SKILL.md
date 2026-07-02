@@ -45,18 +45,36 @@ description: |
 python3 ~/.agents/skills/zanao/zanao_refresh_token.py  # 全自动
 ```
 
-## 抓 token（手动）
+## 抓 token（手动，初次设置用）
 
-```bash
-brew install mitmproxy
-mitmweb --no-web-open-browser
-open ~/.mitmproxy/mitmproxy-ca-cert.pem  # 钥匙串 → 始终信任
-networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
-networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
-# 电脑微信 → 赞噢小程序 → 刷一下
-# mitmweb http://127.0.0.1:8081 → api.x.zanao.com → X-Sc-Od → 填到 config.json
-# 关代理: networksetup -setwebproxystate Wi-Fi off; networksetup -setsecurewebproxystate Wi-Fi off
-# pkill -f mitmweb
+```
+1. 装 mitmproxy: brew install mitmproxy（Windows 用 Fiddler）
+
+2. 启动代理: mitmweb --no-web-open-browser
+   首次启动生成证书 ~/.mitmproxy/mitmproxy-ca-cert.pem
+
+3. 信任证书:
+   macOS: open ~/.mitmproxy/mitmproxy-ca-cert.pem → 钥匙串 → 始终信任
+   Windows: 双击 .p12 → 受信任的根证书颁发机构
+
+4. 设系统代理:
+   macOS: networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
+          networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
+   手机: 连同一 Wi-Fi，代理设电脑 IP + 8080，浏览器访问 http://mitm.it 装证书
+
+5. 微信打开赞噢小程序 → 登录 → 刷一下首页
+
+6. 浏览器打开 http://127.0.0.1:8081 → 找 api.x.zanao.com 的请求
+   → Request Headers → 复制 X-Sc-Od（token）和 X-Sc-Alias（学校缩写）
+
+7. 写入 ~/.agents/skills/zanao/config.json:
+   {"zanao_alias": "学校缩写", "zanao_token": "复制的token"}
+
+8. 关代理: networksetup -setwebproxystate Wi-Fi off
+           networksetup -setsecurewebproxystate Wi-Fi off
+           pkill -f mitmweb
+
+9. 验证: python3 ~/.agents/skills/zanao/zanao_client.py health → 全绿完成
 ```
 
 ## 换学校

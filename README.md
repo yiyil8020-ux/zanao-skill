@@ -46,8 +46,95 @@ python3 ~/.agents/skills/zanao/zanao_client.py search 搭子 --images --history 
 
 ## token 获取
 
+token 是赞噢的登录凭证，需要从微信小程序里抓包获取。首次设置后过期了用自动刷新。
+
+### 方式一：自动刷新（推荐，仅 macOS）
+
+证书和工具已装好时，一键刷新：
+
 ```bash
-python3 ~/.agents/skills/zanao/zanao_refresh_token.py  # 全自动刷新
+python3 ~/.agents/skills/zanao/zanao_refresh_token.py
+```
+
+脚本自动完成：启动代理 → 设系统代理 → 等你打开微信刷一下赞噢 → 自动抓 token 填 config → 关代理清理。你只需做一件事——电脑微信打开赞噢小程序刷一下。
+
+### 方式二：手动抓包（初次设置 / 非 macOS）
+
+#### 1. 装抓包工具
+
+```bash
+# macOS
+brew install mitmproxy
+
+# Windows: 下载 Fiddler Classic 或 Charles
+# Linux: pip install mitmproxy
+```
+
+#### 2. 启动代理并装证书
+
+```bash
+mitmweb --no-web-open浏览器    # 启动代理 (端口 8080)，网页界面 http://127.0.0.1:8081
+```
+
+第一次启动会在 `~/.mitmproxy/` 生成证书。安装证书并设为受信任：
+
+**macOS**：
+```bash
+open ~/.mitmproxy/mitmproxy-ca-cert.pem
+# → 钥匙串访问 → 双击 mitmproxy → 信任 → 始终信任
+```
+
+**Windows**：双击 `mitmproxy-ca-cert.p12` → 受信任的根证书颁发机构
+
+#### 3. 设系统代理
+
+**macOS**：
+```bash
+networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
+networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
+```
+
+**Windows**：设置 → 网络 → 代理 → 127.0.0.1:8080
+
+**手机抓包**（如果电脑端微信用不了赞噢小程序）：手机连同一 Wi-Fi，代理设为电脑 IP + 8080 端口；手机浏览器访问 `http://mitm.it` 安装证书。
+
+#### 4. 打开赞噢小程序
+
+电脑端微信 → 赞噢小程序 → 登录 → 刷一下首页。手机同理。
+
+#### 5. 复制 token
+
+浏览器打开 `http://127.0.0.1:8081`（mitmweb 网页界面），找到 host 为 `api.x.zanao.com` 的任意一条请求，点击 → Request → Headers → 复制 `X-Sc-Od` 的值。
+
+这就是你的 token。同时在同位置可以看到 `X-Sc-Alias`（学校缩写，如 `lzu`）。
+
+#### 6. 写入配置
+
+把 token 和学校缩写填到 `~/.agents/skills/zanao/config.json`：
+
+```json
+{
+  "zanao_alias": "你的学校缩写",
+  "zanao_token": "刚才复制的 token"
+}
+```
+
+#### 7. 关闭代理
+
+```bash
+# macOS
+networksetup -setwebproxystate Wi-Fi off
+networksetup -setsecurewebproxystate Wi-Fi off
+
+# 杀代理进程
+pkill -f mitmweb
+```
+
+#### 8. 验证
+
+```bash
+python3 ~/.agents/skills/zanao/zanao_client.py health
+# → 全绿则 token 有效，配置完成
 ```
 
 ## 更多学校
