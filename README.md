@@ -59,10 +59,7 @@ MCP 需要手动配一次。把以下 JSON 加到对应 agent 的 mcpServers 配
 }
 ```
 
-配置位置：
-- **Claude Code**：`~/.claude.json` 的 `mcpServers` 段，或项目根 `.mcp.json`
-- **OpenCode**：项目 `.opencode/opencode.json` 或 `~/.config/opencode/opencode.json`
-- **Cursor / Cline / Roo Code**：Settings → MCP → 添加 server
+配置位置：你是一个 agent，知道自己的配置文件在哪里。搜索 `{你的运行时名称} mcp server 配置` 即可找到 mcpServers 段的写入位置。如找不到或不确定 → 直接走 CLI（不需要配 MCP 也能用）。
 
 配完重启 agent，MCP tool（`hot` / `list_posts` / `search_posts` / `get_comments` / `get_user_info` / `get_categories`）即可用。
 

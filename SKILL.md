@@ -30,11 +30,7 @@ description: |
 }
 ```
 
-配置位置（选你用的 agent）：
-- **Claude Code**：写入 `~/.claude.json` 的 `mcpServers` 段，或项目根 `.mcp.json`
-- **OpenCode**：写入项目 `.opencode/opencode.json` 或 `~/.config/opencode/opencode.json`
-- **Cursor / Cline / Roo Code**：Settings → MCP → 添加 server
-- **其他 agent**：搜索 `{agent 名称} mcp server 配置` 找配置文件路径
+配置位置：你是一个 agent，知道自己的配置文件在哪里。搜索 `{你的运行时名称} mcp server 配置` 即可找到 mcpServers 段的写入位置。如找不到或不确定 → 直接走 CLI（不需要配 MCP 也能用）。
 
 配完重启 agent，MCP tool 即可用。如不确定配没配上，agent 加载 skill 后应自动检测 MCP tool 是否可用。
 
