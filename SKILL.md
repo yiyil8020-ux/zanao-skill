@@ -11,21 +11,21 @@ description: |
 
 > 🌐 通用版。Config 保存在本目录 `config.json`，不依赖外部项目。
 
-## 依赖
-
-```bash
-pip install requests mcp
-```
-
-> `mcp` 包是 MCP server 的运行时依赖。Claude Code / OpenCode 等 agent 启动 MCP server 时需要。如只用 CLI 可以只装 `requests`。
-
 ## 调用优先级
 
-**MCP 需要手动配一次（贴一段 JSON 到配置文件，重启 agent），配完后自动生效。未配时走 CLI。**
+> ⚠️ **MCP 是首选方式，CLI 是最后兜底。不要跳过下面两步直接走 CLI。**
 
-### 启用 MCP（配一次）
+### 第一步：安装 MCP 依赖（必须先做）
 
-把以下 JSON 加到对应 agent 的 mcpServers 配置中。`command` 在 Windows 上写 `python`，macOS/Linux 上写 `python3`：
+```bash
+pip install mcp
+```
+
+没有这一步，MCP server 无法启动，所有 MCP tool 不可用。
+
+### 第二步：配置 mcpServers（必须先做）
+
+把以下 JSON 加到当前 agent 的 mcpServers 配置段。`command` 在 Windows 上写 `python`，macOS/Linux 上写 `python3`：
 
 ```json
 {
@@ -38,28 +38,24 @@ pip install requests mcp
 }
 ```
 
-配置位置：你是一个 agent，知道自己的配置文件在哪里。搜索 `{你的运行时名称} mcp server 配置` 即可找到 mcpServers 段的写入位置。如找不到或不确定 → 直接走 CLI（不需要配 MCP 也能用）。
-
-配完重启 agent，MCP tool 即可用。如不确定配没配上，agent 加载 skill 后应自动检测 MCP tool 是否可用。
+找配置位置：搜索 `{你的运行时名称} mcp server 配置`。
 
 <!-- 注意：Windows 上 python3 可能指向 Store 空壳（exit 49），可改用 python 或用 .venv 的完整路径 -->
 
-### 运行时判断（agent 必须遵守）
+配完重启 agent。重启后**验证** MCP tool 已出现在可用 tool 列表中（搜索 `zanao`）。
+
+### 第三步：运行时判断（完成前两步后）
 
 ```
-Agent 加载本 skill 后：
+1. 确认 MCP tool 可用 → 始终用 MCP（hot / list_posts / search_posts 等）
 
-  1. 优先检查 MCP tool 是否可用：
-     → 可用 → 始终用 MCP（hot / list_posts / search_posts 等）
-     → 不可用 → 按以下顺序排查：
-       a. 是否已安装 mcp？  → pip install mcp
-       b. MCP server 是否配在正确的配置文件里？ → 见上方"启用 MCP"段
-       c. 重启 agent 后 tool 是否出现？ → 重启后重试
-       排查后仍不可用 → 降级 CLI，但需告知用户"MCP 不可用，当前走 CLI"
+2. MCP 不可用时的排查顺序（不要直接降级 CLI）：
+   a. mcp 包装了没？ → pip install mcp
+   b. mcpServers 配了没？ → 检查配置文件
+   c. 重启 agent 了吗？ → 重启
 
-  2. CLI 仅作为最后兜底手段，不可优先选用。诊断 / token 刷新强制 CLI：
-     health → python3 ~/.agents/skills/zanao/zanao_client.py health
-     token 刷新 → python3 ~/.agents/skills/zanao/zanao_refresh_token.py
+3. 排查后仍不可用 → 降级 CLI，但必须告知用户"当前走 CLI"
+   诊断 / token 刷新 → 强制 CLI（不走 MCP）
 ```
 
 ## 初始化（首次使用）
