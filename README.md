@@ -60,41 +60,84 @@ python3 ~/.agents/skills/zanao/zanao_refresh_token.py
 
 ### 方式二：手动抓包（初次设置时用）
 
+以下步骤每步都区分 macOS / Windows / Linux，选你对应的系统操作即可。做完这一次，以后过期直接用方式一。
+
 #### 1. 装抓包工具
 
+**macOS**
 ```bash
-# macOS
 brew install mitmproxy
-
-# Windows: 下载 Fiddler Classic 或 Charles
-# Linux: pip install mitmproxy
 ```
 
-#### 2. 启动代理并装证书
+**Windows**
+```powershell
+# 以管理员身份打开 PowerShell
+pip install mitmproxy
+# 或去 https://mitmproxy.org 下载安装包
+```
+
+**Linux**
+```bash
+pip install mitmproxy
+```
+
+#### 2. 启动代理并生成证书
 
 ```bash
-mitmweb --no-web-open-browser           # 启动代理 (端口 8080)，网页界面 http://127.0.0.1:8081
+mitmweb --no-web-open-browser
 ```
 
-第一次启动会在 `~/.mitmproxy/` 生成证书。安装证书并设为受信任：
+第一次启动会在 `~/.mitmproxy/` 下生成证书文件。把证书安装为系统受信任：
 
-**macOS**：
+**macOS**
 ```bash
 open ~/.mitmproxy/mitmproxy-ca-cert.pem
-# → 钥匙串访问 → 双击 mitmproxy → 信任 → 始终信任
+# 弹出钥匙串访问 → 双击 mitmproxy → 展开「信任」→「始终信任」→ 输入密码确认
 ```
 
-**Windows**：双击 `mitmproxy-ca-cert.p12` → 受信任的根证书颁发机构
+**Windows**
+```powershell
+# 在资源管理器地址栏输入并回车：
+%USERPROFILE%\.mitmproxy
+
+# 双击 mitmproxy-ca-cert.p12 → 本地计算机 → 下一步
+# → 受信任的根证书颁发机构 → 完成 → 是
+```
+
+**Linux**
+```bash
+# Debian/Ubuntu
+sudo cp ~/.mitmproxy/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/mitmproxy.crt
+sudo update-ca-certificates
+
+# Fedora/CentOS
+sudo cp ~/.mitmproxy/mitmproxy-ca-cert.pem /etc/pki/ca-trust/source/anchors/
+sudo update-ca-trust
+
+# Arch
+sudo trust anchor ~/.mitmproxy/mitmproxy-ca-cert.pem
+```
 
 #### 3. 设系统代理
 
-**macOS**：
+**macOS**
 ```bash
 networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
 networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
 ```
 
-**Windows**：设置 → 网络 → 代理 → 127.0.0.1:8080
+**Windows**
+```
+设置 → 网络和 Internet → 代理
+→ 手动设置代理 → 打开「使用代理服务器」
+→ 地址: 127.0.0.1  端口: 8080 → 保存
+```
+
+**Linux**
+```bash
+export http_proxy=http://127.0.0.1:8080
+export https_proxy=http://127.0.0.1:8080
+```
 
 **手机抓包**（如果电脑端微信用不了赞噢小程序）：手机连同一 Wi-Fi，代理设为电脑 IP + 8080 端口；手机浏览器访问 `http://mitm.it` 安装证书。
 
@@ -121,21 +164,28 @@ networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
 
 #### 7. 关闭代理
 
+**macOS**
 ```bash
-# macOS
 networksetup -setwebproxystate Wi-Fi off
 networksetup -setsecurewebproxystate Wi-Fi off
-
-# 杀代理进程
-pkill -f mitmweb
 ```
+
+**Windows**：设置 → 网络和 Internet → 代理 → 关闭「使用代理服务器」
+
+**Linux**
+```bash
+unset http_proxy https_proxy
+```
+
+**所有平台**：终端里 `Ctrl+C` 停掉 mitmweb
 
 #### 8. 验证
 
 ```bash
 python3 ~/.agents/skills/zanao/zanao_client.py health
-# → 全绿则 token 有效，配置完成
 ```
+
+全绿则初次配置完成。以后 token 过期用方式一自动刷新。
 
 ## 更多学校
 
