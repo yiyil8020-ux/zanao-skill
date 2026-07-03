@@ -48,14 +48,16 @@ pip install requests mcp
 
 ```
 Agent 加载本 skill 后：
-  1. 检查自己的可用 tool 列表中有没有 zanao 前缀的 MCP tool
-     → 有 → 优先用 MCP tool（hot / list_posts / search_posts 等）
-     → 没有 → 告诉用户"需要配置 MCP，见下方说明"，当前降级 CLI
 
-  2. 写操作注意：MCP tool 无确认机制，调用前需向用户复述操作
-     CLI 写操作自带 --yes 确认，推荐写操作用 CLI
+  1. 优先检查 MCP tool 是否可用：
+     → 可用 → 始终用 MCP（hot / list_posts / search_posts 等）
+     → 不可用 → 按以下顺序排查：
+       a. 是否已安装 mcp？  → pip install mcp
+       b. MCP server 是否配在正确的配置文件里？ → 见上方"启用 MCP"段
+       c. 重启 agent 后 tool 是否出现？ → 重启后重试
+       排查后仍不可用 → 降级 CLI，但需告知用户"MCP 不可用，当前走 CLI"
 
-  3. 诊断和 token 刷新强制 CLI：
+  2. CLI 仅作为最后兜底手段，不可优先选用。诊断 / token 刷新强制 CLI：
      health → python3 ~/.agents/skills/zanao/zanao_client.py health
      token 刷新 → python3 ~/.agents/skills/zanao/zanao_refresh_token.py
 ```
