@@ -36,13 +36,37 @@ python3 ~/.agents/skills/zanao/zanao_client.py health        # 健康检查
 
 Agent 加载本 skill 后自动走初始化流程：询问学校缩写 → 引导获取 token → 完成。之后直接调用命令。
 
+### CLI（默认，开箱即用）
+
 ```bash
-# CLI
 python3 ~/.agents/skills/zanao/zanao_client.py hot
 python3 ~/.agents/skills/zanao/zanao_client.py search 搭子 --images --history --range 7d
-
-# MCP（在 agent 的 opencode.json 里配 mcpServers）
+python3 ~/.agents/skills/zanao/zanao_client.py health
 ```
+
+### MCP（配一次，自动生效）
+
+MCP 需要手动配一次。把以下 JSON 加到对应 agent 的 mcpServers 配置中：
+
+```json
+{
+  "mcpServers": {
+    "zanao": {
+      "command": "python3",
+      "args": ["~/.agents/skills/zanao/zanao_mcp.py"]
+    }
+  }
+}
+```
+
+配置位置：
+- **Claude Code**：`~/.claude.json` 的 `mcpServers` 段，或项目根 `.mcp.json`
+- **OpenCode**：项目 `.opencode/opencode.json` 或 `~/.config/opencode/opencode.json`
+- **Cursor / Cline / Roo Code**：Settings → MCP → 添加 server
+
+配完重启 agent，MCP tool（`hot` / `list_posts` / `search_posts` / `get_comments` / `get_user_info` / `get_categories`）即可用。
+
+> 写操作推荐走 CLI（自带 `--yes` 确认），MCP tool 无确认机制。诊断和 token 刷新强制走 CLI。
 
 ## token 获取
 

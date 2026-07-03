@@ -18,6 +18,9 @@ SKILL_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = SKILL_DIR / "config.json"
 
 API_BASE = "https://api.x.zanao.com"
+# 以下两个常量来自 jeanhua/ZanaoMCP 逆向微信小程序 wxapkg 得到。
+# 赞噢服务端如更换盐值或 AppID，需要重新反编译小程序包提取新的值。
+# 签名算法: MD5(alias_nonce_timestamp_盐值)，每次请求重新生成 nonce。
 APP_ID = "wx3921ddb0258ff14f"
 SIGN_SALT = "1b6d2514354bc407afdd935f45521a8c"
 CLIENT_VERSION = "3.4.4"

@@ -13,9 +13,46 @@ description: |
 
 ## 调用优先级
 
-1. **优先 MCP** — 如果 agent 有 MCP 能力，用 MCP tool
-2. **MCP 故障降级 CLI** — 切到 `python3 ~/.agents/skills/zanao/zanao_client.py <cmd>`
-3. **诊断/刷新强制 CLI**
+**MCP 需要手动配一次（贴一段 JSON 到配置文件，重启 agent），配完后自动生效。未配时走 CLI。**
+
+### 启用 MCP（配一次）
+
+把以下 JSON 加到对应 agent 的 mcpServers 配置中。`command` 在 Windows 上写 `python`，macOS/Linux 上写 `python3`：
+
+```json
+{
+  "mcpServers": {
+    "zanao": {
+      "command": "python3",
+      "args": ["~/.agents/skills/zanao/zanao_mcp.py"]
+    }
+  }
+}
+```
+
+配置位置（选你用的 agent）：
+- **Claude Code**：写入 `~/.claude.json` 的 `mcpServers` 段，或项目根 `.mcp.json`
+- **OpenCode**：写入项目 `.opencode/opencode.json` 或 `~/.config/opencode/opencode.json`
+- **Cursor / Cline / Roo Code**：Settings → MCP → 添加 server
+- **其他 agent**：搜索 `{agent 名称} mcp server 配置` 找配置文件路径
+
+配完重启 agent，MCP tool 即可用。如不确定配没配上，agent 加载 skill 后应自动检测 MCP tool 是否可用。
+
+### 运行时判断（agent 必须遵守）
+
+```
+Agent 加载本 skill 后：
+  1. 检查自己的可用 tool 列表中有没有 zanao 前缀的 MCP tool
+     → 有 → 优先用 MCP tool（hot / list_posts / search_posts 等）
+     → 没有 → 告诉用户"需要配置 MCP，见下方说明"，当前降级 CLI
+
+  2. 写操作注意：MCP tool 无确认机制，调用前需向用户复述操作
+     CLI 写操作自带 --yes 确认，推荐写操作用 CLI
+
+  3. 诊断和 token 刷新强制 CLI：
+     health → python3 ~/.agents/skills/zanao/zanao_client.py health
+     token 刷新 → python3 ~/.agents/skills/zanao/zanao_refresh_token.py
+```
 
 ## 初始化（首次使用）
 
