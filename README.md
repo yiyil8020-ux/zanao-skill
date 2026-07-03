@@ -72,11 +72,16 @@ brew install mitmproxy        # macOS
 pip install mitmproxy         # Linux
 ```
 
-**Windows**：下载 [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) 并安装（Windows 上比 mitmproxy 更好用）。
+**Windows**：用 mitmproxy（命令行，跟 macOS/Linux 一样）
+
+```powershell
+pip install mitmproxy
+mitmweb --no-web-open-browser
+```
 
 #### 2. 启动代理并信任证书
 
-**macOS / Linux — mitmproxy**
+**macOS / Linux / Windows — mitmproxy**
 ```bash
 mitmweb --no-web-open-browser
 ```
@@ -87,18 +92,13 @@ mitmweb --no-web-open-browser
 open ~/.mitmproxy/mitmproxy-ca-cert.pem
 # → 钥匙串 → 双击 mitmproxy → 信任 → 始终信任 → 输密码
 
+# Windows: 以管理员身份运行 PowerShell
+certutil -addstore Root %USERPROFILE%\.mitmproxy\mitmproxy-ca-cert.cer
+
 # Linux
 sudo cp ~/.mitmproxy/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/mitmproxy.crt
 sudo update-ca-certificates
 ```
-
-**Windows — Fiddler**
-```
-启动 Fiddler → 顶部菜单 Tools → Options → HTTPS 标签
-→ 勾选 Decrypt HTTPS traffic → 弹窗点 Yes 信任证书
-→ 重启 Fiddler
-```
-Fiddler 默认监听 8888 端口。后续步骤端口改为 8888。
 
 #### 3. 设系统代理
 
@@ -108,7 +108,10 @@ networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
 networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
 ```
 
-**Windows — Fiddler 自动处理**（Fiddler 启动后自动设代理，无需手动操作）
+**Windows**
+```powershell
+netsh winhttp set proxy 127.0.0.1:8080
+```
 
 **Linux**
 ```bash
@@ -116,7 +119,7 @@ export http_proxy=http://127.0.0.1:8080
 export https_proxy=http://127.0.0.1:8080
 ```
 
-**手机抓包**：手机连同一 Wi-Fi，代理设为电脑 IP + 对应端口（mitmproxy 8080 / Fiddler 8888）；手机浏览器访问 `http://mitm.it`（mitmproxy）或 `http://电脑IP:8888`（Fiddler）安装证书。
+**手机抓包**：手机连同一 Wi-Fi，代理设为电脑 IP + 8080 端口；手机浏览器访问 `http://mitm.it` 安装证书。
 
 #### 4. 打开赞噢小程序
 
@@ -125,7 +128,6 @@ export https_proxy=http://127.0.0.1:8080
 #### 5. 复制 token
 
 - **mitmproxy**：浏览器打开 `http://127.0.0.1:8081`，找 host 为 `api.x.zanao.com` 的请求 → Request Headers → 复制 `X-Sc-Od`
-- **Fiddler**：左侧列表找 `api.x.zanao.com` → 右侧 Inspectors → Raw → 找 `X-Sc-Od`
 
 同时在同位置可以看到 `X-Sc-Alias`（学校缩写）。
 
@@ -139,7 +141,7 @@ export https_proxy=http://127.0.0.1:8080
 #### 7. 关闭代理
 
 - **macOS**：`networksetup -setwebproxystate Wi-Fi off && networksetup -setsecurewebproxystate Wi-Fi off`，终端 `Ctrl+C` 停 mitmweb
-- **Windows**：关闭 Fiddler 即可（自动还原代理）
+- **Windows**：```netsh winhttp reset proxy```，终端 `Ctrl+C` 停 mitmweb
 - **Linux**：`unset http_proxy https_proxy`，终端 `Ctrl+C` 停 mitmweb
 
 #### 8. 验证
