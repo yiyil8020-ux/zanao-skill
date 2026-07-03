@@ -72,16 +72,11 @@ brew install mitmproxy        # macOS
 pip install mitmproxy         # Linux
 ```
 
-**Windows**：用 mitmproxy（命令行，跟 macOS/Linux 一样）
-
-```powershell
-pip install mitmproxy
-mitmweb --no-web-open-browser
-```
+**Windows**：下载 [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic)，安装后启动，Tools → Options → HTTPS → 勾选 Decrypt HTTPS traffic → 弹窗点 Yes 信任证书。Fiddler 自动接管系统代理，无需手动设。
 
 #### 2. 启动代理并信任证书
 
-**macOS / Linux / Windows — mitmproxy**
+**macOS / Linux — mitmproxy**
 ```bash
 mitmweb --no-web-open-browser
 ```
@@ -92,13 +87,12 @@ mitmweb --no-web-open-browser
 open ~/.mitmproxy/mitmproxy-ca-cert.pem
 # → 钥匙串 → 双击 mitmproxy → 信任 → 始终信任 → 输密码
 
-# Windows: 以管理员身份运行 PowerShell
-certutil -addstore Root %USERPROFILE%\.mitmproxy\mitmproxy-ca-cert.cer
-
 # Linux
 sudo cp ~/.mitmproxy/mitmproxy-ca-cert.pem /usr/local/share/ca-certificates/mitmproxy.crt
 sudo update-ca-certificates
 ```
+
+**Windows — Fiddler**：启动 Fiddler 时已自动处理证书和代理，跳过步骤 2 和 3。
 
 #### 3. 设系统代理
 
@@ -108,10 +102,7 @@ networksetup -setwebproxy Wi-Fi 127.0.0.1 8080
 networksetup -setsecurewebproxy Wi-Fi 127.0.0.1 8080
 ```
 
-**Windows**
-```powershell
-netsh winhttp set proxy 127.0.0.1:8080
-```
+**Windows**：Fiddler 自动接管，无需手动操作。
 
 **Linux**
 ```bash
@@ -128,6 +119,7 @@ export https_proxy=http://127.0.0.1:8080
 #### 5. 复制 token
 
 - **mitmproxy**：浏览器打开 `http://127.0.0.1:8081`，找 host 为 `api.x.zanao.com` 的请求 → Request Headers → 复制 `X-Sc-Od`
+- **Fiddler**：左侧列表找 `api.x.zanao.com` → 右侧 Inspectors → Raw → 找 `X-Sc-Od`
 
 同时在同位置可以看到 `X-Sc-Alias`（学校缩写）。
 
@@ -141,7 +133,7 @@ export https_proxy=http://127.0.0.1:8080
 #### 7. 关闭代理
 
 - **macOS**：`networksetup -setwebproxystate Wi-Fi off && networksetup -setsecurewebproxystate Wi-Fi off`，终端 `Ctrl+C` 停 mitmweb
-- **Windows**：```netsh winhttp reset proxy```，终端 `Ctrl+C` 停 mitmweb
+- **Windows**：关闭 Fiddler（自动还原代理）
 - **Linux**：`unset http_proxy https_proxy`，终端 `Ctrl+C` 停 mitmweb
 
 #### 8. 验证
