@@ -11,6 +11,14 @@ description: |
 
 > 🌐 通用版。Config 保存在本目录 `config.json`，不依赖外部项目。
 
+## 依赖
+
+```bash
+pip install requests mcp
+```
+
+> `mcp` 包是 MCP server 的运行时依赖。Claude Code / OpenCode 等 agent 启动 MCP server 时需要。如只用 CLI 可以只装 `requests`。
+
 ## 调用优先级
 
 **MCP 需要手动配一次（贴一段 JSON 到配置文件，重启 agent），配完后自动生效。未配时走 CLI。**
@@ -33,6 +41,8 @@ description: |
 配置位置：你是一个 agent，知道自己的配置文件在哪里。搜索 `{你的运行时名称} mcp server 配置` 即可找到 mcpServers 段的写入位置。如找不到或不确定 → 直接走 CLI（不需要配 MCP 也能用）。
 
 配完重启 agent，MCP tool 即可用。如不确定配没配上，agent 加载 skill 后应自动检测 MCP tool 是否可用。
+
+<!-- 注意：Windows 上 python3 可能指向 Store 空壳（exit 49），可改用 python 或用 .venv 的完整路径 -->
 
 ### 运行时判断（agent 必须遵守）
 
@@ -64,6 +74,10 @@ Agent 加载本 skill 后：
    或者手动抓包（见下方）
 
 5. 验证：python3 ~/.agents/skills/zanao/zanao_client.py health → 全绿即完成
+
+6. 如果配了 MCP，验证 MCP 是否可用：
+   重启 agent → 检查 tool 列表有 zanao_ 前缀的 tool → 有则 MCP 生效
+   如果没有，说明 mcp 包没装或配置路径不对，当前降级 CLI
 ```
 
 ## CLI 命令

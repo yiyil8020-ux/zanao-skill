@@ -2,6 +2,12 @@
 
 import sys
 import time
+
+# Windows 控制台默认 GBK 不支持 emoji，强制 UTF-8
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 from argparse import ArgumentParser
 
 from client import (

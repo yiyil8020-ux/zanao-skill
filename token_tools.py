@@ -109,8 +109,14 @@ def _kill_wmpf():
 
 
 def _start_mitm():
-    _kill_mitm()
-    time.sleep(1)
+    # 端口残留检测：先杀旧 mitmweb，避免 8080 被占导致启动失败
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    in_use = sock.connect_ex(('127.0.0.1', 8080)) == 0
+    sock.close()
+    if in_use:
+        _kill_mitm()
+        time.sleep(1)
     with open(GRABBER_SCRIPT, "w", encoding="utf-8") as f:
         f.write(GRABBER_CODE)
     env = os.environ.copy()
@@ -272,7 +278,11 @@ def main():
         print("├" + "─" * 58 + "┤")
         print("│" + "   完成后回到这里，按 Enter 开始自动抓取 token...         ".center(62) + "│")
         print("└" + "─" * 58 + "┘")
-        input("   >>> ")
+        try:
+            input("   >>> ")
+        except EOFError:
+            # 非交互式环境（如管道、IDE 终端）直接继续
+            print("")
 
         # 等待
         try:
@@ -280,11 +290,10 @@ def main():
         except Exception:
             token, alias = None, None
 
-        # 正常清理
-        print("\n4/4 清理...")
-        _clean(proc)
-
         if token:
+            print("\n4/4 清理...")
+            _clean(proc)
+            proc = None
             changed = _update(token, alias)
             print(f"   {'✅ token 已更新' if changed else 'ℹ️  token 未变'}")
             print(f"      alias={alias}   末4位=...{token[-4:]}")
@@ -295,6 +304,9 @@ def main():
             print(f"   {python_cmd} ~/.agents/skills/zanao/zanao_client.py user")
             print("=" * 40)
         else:
+            print("\n4/4 清理...")
+            _clean(proc)
+            proc = None
             print("   ⚠️  未抓到赞哦请求")
             print()
             print("=" * 40)
@@ -309,9 +321,9 @@ def main():
             print(f"   再试: {'python' if IS_WIN else 'python3'} ~/.agents/skills/zanao/zanao_refresh_token.py")
             print("=" * 40)
             sys.exit(1)
-    finally:
-        # 确保任何异常退出（EOFError、网络错误等）也能清理代理和进程
+    except Exception:
         _clean(proc)
+        raise
 
 
 if __name__ == "__main__":
