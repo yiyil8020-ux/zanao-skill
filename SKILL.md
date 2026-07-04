@@ -15,12 +15,10 @@ description: |
 
 > ⚠️ **MCP 是首选方式，CLI 是最后兜底。不要跳过下面两步直接走 CLI。**
 
-### 第一步：安装依赖（必须先做）
+### 第一步：安装 MCP 依赖（必须先做）
 
 ```bash
-pip install requests mcp mitmproxy
-# Windows 网络慢？用国内镜像：
-pip install requests mcp mitmproxy -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install mcp
 ```
 
 没有这一步，MCP server 无法启动，所有 MCP tool 不可用。
@@ -62,16 +60,13 @@ pip install requests mcp mitmproxy -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ## 初始化（首次使用）
 
-> ⚠️ **必须先完成上面第一步（安装依赖）再进行初始化！否则 MCP 和脚本都无法运行。**
-
 ```
 1. 检查本目录有无 config.json 且 zanao_token 非空 → 有则跳到第 5 步
 
-2. 询问用户：你在哪个学校的赞噢？请输入学校缩写（如 scu, zzu 等）
-   → 用户知道 → 写入 alias
-   → 用户不知道/不确定 → 先留空 alias，直接跑第 4 步自动抓（zanao_refresh_token.py 会同时抓到 alias 和 token）
+2. 询问用户：你在哪个学校的赞噢？请输入学校缩写
+   常见值为学校英文缩写（如 scu, zzu 等），不确定就抓包看 X-Sc-Alias
 
-3. 从 config.example.json 复制为 config.json，写入 alias（或留空）
+3. 从 config.example.json 复制为 config.json，写入 alias
 
 4. 获取 token：python3 ~/.agents/skills/zanao/zanao_refresh_token.py
    或者手动抓包（见下方）
