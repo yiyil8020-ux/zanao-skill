@@ -7,7 +7,9 @@
 ```bash
 # 1. 安装
 git clone https://github.com/yiyil8020-ux/zanao-skill.git ~/.agents/skills/zanao
-pip install requests mcp    # mcp 是 MCP server 运行必需的，CLI 模式可选
+pip install requests mcp mitmproxy
+# Windows 网络慢？用国内镜像：
+# pip install requests mcp mitmproxy -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 2. Agent 加载后自动走初始化：询问学校缩写 → 引导获取 token
 
