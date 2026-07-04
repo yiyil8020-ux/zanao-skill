@@ -93,7 +93,7 @@ python3 ~/.agents/skills/zanao/zanao_refresh_token.py  # 全自动
 ## 抓 token（手动，初次设置用）
 
 ```
-1. 装 mitmproxy: brew install mitmproxy（Windows 用 Fiddler）
+1. 装 mitmproxy: brew install mitmproxy（macOS）/ pip install mitmproxy（Windows/Linux）
 
 2. 启动代理: mitmweb --no-web-open-browser
    首次启动生成证书 ~/.mitmproxy/mitmproxy-ca-cert.pem
