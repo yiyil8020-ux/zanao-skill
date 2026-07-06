@@ -9,7 +9,7 @@
 git clone https://github.com/yiyil8020-ux/zanao-skill.git ~/.agents/skills/zanao
 pip install requests mcp    # mcp 是 MCP server 运行必需的，CLI 模式可选
 
-# 2. Agent 加载后自动走初始化：询问学校缩写 → 引导获取 token
+# 2. Agent 加载后自动走初始化：引导获取 token（alias 自动抓）
 
 # 3. 开始使用
 python3 ~/.agents/skills/zanao/zanao_client.py hot          # 热门帖子
@@ -34,7 +34,7 @@ python3 ~/.agents/skills/zanao/zanao_client.py health        # 健康检查
 
 ## 使用
 
-Agent 加载本 skill 后自动走初始化流程：询问学校缩写 → 引导获取 token → 完成。之后直接调用命令。
+Agent 加载本 skill 后自动走初始化流程：引导获取 token（alias 自动抓，无需手动填）→ 完成。之后直接调用命令。
 
 ### CLI（默认，开箱即用）
 

@@ -46,18 +46,16 @@ MCP 需要手动配一次：
 ## 初始化（首次使用）
 
 ```
-1. 检查本目录有无 config.json 且 zanao_token 非空 → 有则跳到第 5 步
+1. 检查本目录有无 config.json 且 zanao_token 非空 → 有则跳到第 4 步
 
-2. 询问用户：你在哪个学校的赞噢？请输入学校缩写
-   常见值为学校英文缩写（如 lzu, scu, zzu 等），不确定就抓包看 X-Sc-Alias
+2. 获取 token（二选一）：
+   a. python3 ~/.agents/skills/zanao/zanao_refresh_token.py  # 全自动，alias 和 token 一起抓
+   b. 手动抓包（见下方）
 
-3. 从 config.example.json 复制为 config.json，写入 alias
-
-4. 获取 token：python3 ~/.agents/skills/zanao/zanao_refresh_token.py
-   或者手动抓包（见下方）
-
-5. 验证：python3 ~/.agents/skills/zanao/zanao_client.py health → 全绿即完成
+3. 验证：python3 ~/.agents/skills/zanao/zanao_client.py health → 全绿即完成
 ```
+
+> 学校缩写（alias）不需要手动填。一键刷新脚本会从请求头 `X-Sc-Alias` 自动获取；手动抓包时 `X-Sc-Alias` 和 `X-Sc-Od` 在同一个请求里，一起复制。
 
 ## CLI 命令
 
