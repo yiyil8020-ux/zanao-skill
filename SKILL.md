@@ -2,7 +2,7 @@
 name: zanao
 description: |
   赞噢校园集市模块 — 通用版，适配任意高校。
-  CLI 为主（14 命令），MCP 可选（13 tool）。依赖: pip install requests mcp
+  CLI 为主（14 命令），MCP 可选（13 tool）。依赖: pip install requests
  触发场景: 浏览帖子/搜索/评论/配图/点赞/发帖/回帖/消息/token 刷新
 触发词: 赞噢, 校园集市, 集市, 帖子, 热门, 搭子, zanao
 ---

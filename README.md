@@ -7,7 +7,7 @@
 ```bash
 # 1. 安装
 git clone https://github.com/yiyil8020-ux/zanao-skill.git ~/.agents/skills/zanao
-pip install requests mcp    # mcp 是 MCP server 运行必需的，CLI 模式可选
+pip install requests       # CLI 所需（mcp 是 MCP 可选，需要时 pip install mcp）
 
 # 2. Agent 加载后自动走初始化：引导获取 token（alias 自动抓）
 
