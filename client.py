@@ -6,7 +6,8 @@
 
 import hashlib
 import json
-import random
+import os
+import secrets
 import sys
 import time
 from pathlib import Path
@@ -16,6 +17,9 @@ import requests
 
 SKILL_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = SKILL_DIR / "config.json"
+# 仓库根 config.json（项目模式 fallback；独立安装时不存在，走 SKILL_DIR/config.json）
+REPO_ROOT = SKILL_DIR.parent.parent
+REPO_CONFIG_PATH = REPO_ROOT / "config.json"
 
 API_BASE = "https://api.x.zanao.com"
 # 以下两个常量来自 jeanhua/ZanaoMCP 逆向微信小程序 wxapkg 得到。
@@ -46,25 +50,36 @@ class NetworkError(ZanaoError):
 
 
 def load_config():
+    cfg = {}
     if CONFIG_PATH.exists():
-        return json.load(open(CONFIG_PATH, encoding="utf-8"))
-    return {}
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            cfg = json.load(f)
+    if REPO_CONFIG_PATH.exists() and REPO_CONFIG_PATH != CONFIG_PATH:
+        try:
+            with open(REPO_CONFIG_PATH, encoding="utf-8") as f:
+                repo_cfg = json.load(f)
+            for k in ("zanao_token", "zanao_alias"):
+                if k in repo_cfg and not cfg.get(k):
+                    cfg[k] = repo_cfg[k]
+        except Exception:
+            pass
+    return cfg
 
 
 def get_creds(exit_on_missing=True):
     cfg = load_config()
-    token = (cfg.get("zanao_token") or "").strip()
-    alias = (cfg.get("zanao_alias") or "lzu").strip() or "lzu"
+    token = (os.environ.get("ZANAO_TOKEN") or cfg.get("zanao_token") or "").strip()
+    alias = (os.environ.get("ZANAO_ALIAS") or cfg.get("zanao_alias") or "lzu").strip() or "lzu"
     if not token and exit_on_missing:
         print("ERROR: config.json 没填 zanao_token")
         print("首次配置: 按 README 赞哦章节抓包获取")
-        print("token 过期: python3 scripts/zanao_refresh_token.py")
+        print("token 过期: python3 ~/.agents/skills/zanao/zanao_refresh_token.py")
         sys.exit(1)
     return token, alias
 
 
 def _gen_nonce(length=20):
-    return "".join(str(random.randint(0, 9)) for _ in range(length))
+    return "".join(str(secrets.randbelow(10)) for _ in range(length))
 
 
 def build_headers(token, alias):
@@ -76,14 +91,14 @@ def build_headers(token, alias):
         "X-Sc-Version": CLIENT_VERSION, "X-Sc-Nwt": "wifi", "X-Sc-Wf": "",
         "X-Sc-Nd": nonce, "X-Sc-Cloud": "0", "X-Sc-Platform": "windows",
         "X-Sc-Appid": APP_ID, "X-Sc-Alias": alias, "X-Sc-Od": token,
-        "Content-Type": "application/x-www-form-urlencoded", "X-Sc-Ah": sign,
-        "xweb_xhr": "1", "User-Agent": USER_AGENT, "X-Sc-Td": str(td), "Accept": "*/*",
+        "X-Sc-Ah": sign, "xweb_xhr": "1", "User-Agent": USER_AGENT,
+        "X-Sc-Td": str(td), "Accept": "*/*",
     }
 
 
 def _extract_list(data):
     if isinstance(data, dict):
-        return data.get("list", []) or []
+        return data.get("list") or []
     if isinstance(data, list):
         return data
     return []
@@ -151,7 +166,7 @@ class ZanaoClient:
     def categories(self):
         data = self._post(f"{API_BASE}/catelist?from=post&is_cross=0&cross_all=1")
         if isinstance(data, dict):
-            return data.get("cate_list", []) or []
+            return data.get("cate_list") or []
         return []
 
     def user_info(self):

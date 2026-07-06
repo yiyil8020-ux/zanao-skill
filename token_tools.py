@@ -12,19 +12,24 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
 # Windows 控制台默认 GBK 不支持 emoji，强制 UTF-8
 if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (OSError, AttributeError):
+        pass
 
 SKILL_DIR = Path(__file__).resolve().parent
 CONFIG_PATH = SKILL_DIR / "config.json"
-TOKEN_FILE = str(Path(os.environ.get("TEMP", "/tmp")) / "zanao_token.txt")
-GRABBER_SCRIPT = str(Path(os.environ.get("TEMP", "/tmp")) / "zanao_grabber.py")
-LOG_FILE = str(Path(os.environ.get("TEMP", "/tmp")) / "mitmweb_refresh.log")
+TMP = Path(tempfile.gettempdir())
+TOKEN_FILE = str(TMP / "zanao_token.txt")
+GRABBER_SCRIPT = str(TMP / "zanao_grabber.py")
+LOG_FILE = str(TMP / "mitmweb_refresh.log")
 
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
@@ -62,23 +67,22 @@ def _check_prereqs():
         print(f"   证书路径: {cert}")
         print("   ⏳ 正在启动 mitmweb 生成证书...")
         # 临时启动 mitmweb 生成证书，生成后立即关闭
-        log = open(LOG_FILE, "w", encoding="utf-8")
-        tmp_proc = subprocess.Popen(
-            ["mitmweb", "--no-web-open-browser", "--listen-port", "8080"],
-            stdout=log, stderr=log,
-        )
-        time.sleep(4)
-        for _ in range(15):
-            if cert.exists():
-                break
-            time.sleep(1)
-        tmp_proc.terminate()
+        with open(LOG_FILE, "w", encoding="utf-8") as log:
+            tmp_proc = subprocess.Popen(
+                ["mitmweb", "--no-web-open-browser", "--listen-port", "8080"],
+                stdout=log, stderr=log,
+            )
+            time.sleep(4)
+            for _ in range(15):
+                if cert.exists():
+                    break
+                time.sleep(1)
+            tmp_proc.terminate()
         time.sleep(1)
         try:
             tmp_proc.kill()
         except Exception:
             pass
-        log.close()
         if not cert.exists():
             print("❌ 证书仍未生成，请检查 mitmproxy 安装")
             sys.exit(1)
@@ -121,13 +125,13 @@ def _start_mitm():
         f.write(GRABBER_CODE)
     env = os.environ.copy()
     env["ZANAO_TOKEN_FILE"] = TOKEN_FILE
-    log = open(LOG_FILE, "w", encoding="utf-8")
-    p = subprocess.Popen(
-        ["mitmweb", "-s", GRABBER_SCRIPT, "--no-web-open-browser", "--listen-port", "8080"],
-        stdout=log,
-        stderr=log,
-        env=env,
-    )
+    with open(LOG_FILE, "w", encoding="utf-8") as log:
+        p = subprocess.Popen(
+            ["mitmweb", "-s", GRABBER_SCRIPT, "--no-web-open-browser", "--listen-port", "8080"],
+            stdout=log,
+            stderr=log,
+            env=env,
+        )
     time.sleep(3)
     if p.poll() is not None:
         print("❌ mitmweb 启动失败！")
@@ -187,7 +191,7 @@ def _wait(timeout=180):
         if os.path.exists(TOKEN_FILE):
             with open(TOKEN_FILE, encoding="utf-8") as f:
                 content = f.read().strip()
-            token, alias = None, "lzu"
+            token, alias = None, None
             for line in content.split("\n"):
                 if line.startswith("token="):
                     token = line.split("=", 1)[1]
@@ -204,8 +208,11 @@ def _wait(timeout=180):
 
 
 def _update(token, alias):
-    with open(CONFIG_PATH, encoding="utf-8") as f:
-        cfg = json.load(f)
+    if CONFIG_PATH.exists():
+        with open(CONFIG_PATH, encoding="utf-8") as f:
+            cfg = json.load(f)
+    else:
+        cfg = {}
     old = cfg.get("zanao_token", "")
     cfg["zanao_token"] = token
     cfg["zanao_alias"] = alias

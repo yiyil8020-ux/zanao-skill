@@ -2,11 +2,15 @@
 
 import sys
 import time
+from pathlib import Path
 
 # Windows 控制台默认 GBK 不支持 emoji，强制 UTF-8
 if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except (OSError, AttributeError):
+        pass
 
 from argparse import ArgumentParser
 
@@ -29,7 +33,7 @@ def _fmt_post(p):
     body = f"{title} {content}".strip()
     if len(body) > 80:
         body = body[:80] + "…"
-    imgs = p.get("img_paths", []) or []
+    imgs = p.get("img_paths") or []
     img_tag = f"📷{len(imgs)}图 " if imgs else ""
     return f"[{tid}] [{cate}] {img_tag}{nick}: {body} (浏览{views} 评论{comments} 赞{likes} {ptime})"
 
@@ -38,7 +42,7 @@ def _print_posts(posts, show_images=False):
     for p in posts:
         print(_fmt_post(p))
         if show_images:
-            for url in img_urls(p.get("img_paths", []) or []):
+            for url in img_urls(p.get("img_paths") or []):
                 print(f"  📷 {url}")
 
 
@@ -123,8 +127,7 @@ def cmd_comments(args):
 
 
 def cmd_user(args):
-    token, alias = get_creds()
-    c = ZanaoClient(token, alias)
+    c = _make_client()
     try:
         info = c.user_info()
     except Exception as e:
@@ -137,8 +140,9 @@ def cmd_user(args):
     ui = info.get("user_info", {}) or {}
     nick = ui.get("nickname", "?")
     level = ui.get("user_level_title", "?")
+    token = c.token
     print(f"👤 {nick} (等级:{level}) @ {school}")
-    print(f"   alias: {alias}")
+    print(f"   alias: {c.alias}")
     print(f"   token 末4位: ...{token[-4:] if len(token) >= 4 else token}")
 
 
@@ -176,11 +180,18 @@ def cmd_health(args):
         print("   token 过期: python3 ~/.agents/skills/zanao/zanao_refresh_token.py")
         return
 
-    # 2. API 网络连通性
+    # 2. API 网络连通性（轻量 POST 到 user/info）
     import requests
     try:
-        r = requests.head("https://api.x.zanao.com", timeout=5)
-        print(f"✅ API 连通: HTTP {r.status_code}")
+        c_test = ZanaoClient(token, alias)
+        info = c_test.user_info()
+        if isinstance(info, dict) and info.get("school_name"):
+            school = info.get("school_name", "?")
+            print(f"✅ API 连通: 学校={school}")
+        else:
+            print(f"⚠️  API 连通但数据异常: {info}")
+    except ZanaoError:
+        print(f"❌ API 连通但 token 无效或接口错误")
     except Exception:
         print(f"❌ API 不通: 检查网络/VPN")
         return
@@ -216,8 +227,7 @@ def cmd_health(args):
         print(f"⚠️  mitmproxy: 未安装（token 刷新需要: brew install mitmproxy）")
 
     # 6. 证书
-    from pathlib import Path as P
-    cert = P.home() / ".mitmproxy" / "mitmproxy-ca-cert.pem"
+    cert = Path.home() / ".mitmproxy" / "mitmproxy-ca-cert.pem"
     if cert.exists():
         print(f"✅ mitmproxy 证书: 已生成")
     else:
@@ -228,11 +238,8 @@ def cmd_health(args):
 
 def cmd_like(args):
     """点赞帖子。需要 --yes 确认（写操作）。"""
-    if not args.yes:
-        a = input(f"确认点赞帖子 {args.thread_id}？(y/N) ")
-        if a.strip().lower() != 'y':
-            print("已取消")
-            return
+    if not _confirm(f"确认点赞帖子 {args.thread_id}？", args):
+        return
     c = _make_client()
     try:
         c.like_post(args.thread_id)
@@ -243,11 +250,8 @@ def cmd_like(args):
 
 def cmd_unlike(args):
     """取消点赞帖子。需要 --yes 确认（写操作）。"""
-    if not args.yes:
-        a = input(f"确认取消点赞帖子 {args.thread_id}？(y/N) ")
-        if a.strip().lower() != 'y':
-            print("已取消")
-            return
+    if not _confirm(f"确认取消点赞帖子 {args.thread_id}？", args):
+        return
     c = _make_client()
     try:
         c.unlike_post(args.thread_id)

@@ -14,7 +14,7 @@ def _get_creds():
     return token, alias
 
 
-mcp = FastMCP("zanao", instructions="赞哦校园集市 MCP。12 个 tool（6 读 + 6 写）。写操作需谨慎使用。")
+mcp = FastMCP("zanao", instructions="赞哦校园集市 MCP。13 个 tool（7 读 + 6 写）。写操作需谨慎使用。")
 
 
 @mcp.tool()
